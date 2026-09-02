@@ -19,3 +19,32 @@ On the sending host you'll see output like this (option 1):
 ![receiving data](https://github.com/enclave-networks/multicast-test/raw/master/receiving.png)
 
 See also the [Singlewire Multicast Testing Tool](https://support.singlewire.com/s/software-downloads/a17C0000008Dg7AIAS/ictestermulticastzip) discussed [here](https://salmannaqvi.com/2016/11/14/simple-multicast-testing-tool-for-windows/) by Salman Naqvi – 2 x CCIE. The Singlewire tool is perfectly adequate if you have a single network interface, but if you're working on systems with multiple network interfaces, this version should be quite useful.
+
+## Python version
+
+`multicast_test.py` is a Python port of this tool with the same workflow and defaults. It uses only the Python standard library — no third-party packages, no `pip install`, no admin rights. Any Python 3.x on Windows or Linux will run it.
+
+Interactive mode (same prompts as the .NET tool):
+
+```
+python multicast_test.py
+```
+
+Command-line mode, useful for scripting:
+
+```
+python multicast_test.py -m recv                          # listen on the default group/port
+python multicast_test.py -m send -c 10                    # send 10 messages, then exit
+python multicast_test.py -m send -i 192.168.1.10          # bind to a specific interface
+python multicast_test.py -m recv -g 239.0.1.2 -p 20480
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-m, --mode` | `send` or `recv` (omit to use interactive prompts) | interactive |
+| `-i, --interface` | Local IP to bind | `0.0.0.0` |
+| `-g, --group` | Multicast group address | `239.0.1.2` |
+| `-p, --port` | UDP port | `20480` |
+| `-c, --count` | Sender only: stop after N messages | send forever |
+
+The same caveats apply as for the .NET tool: don't use interface `0.0.0.0` to send — bind to a specific interface instead. On Windows, the firewall will block the receiver on first run until the app is allowed through.
