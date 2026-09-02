@@ -95,13 +95,19 @@ def receiver(interface_ip, group, port):
     # Join the group on the chosen interface.
     mreq = struct.pack("4s4s", socket.inet_aton(group), socket.inet_aton(interface_ip))
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    # Wake up regularly so Ctrl+C is processed promptly (a blocking recvfrom
+    # on Windows swallows the interrupt until data arrives).
+    sock.settimeout(1.0)
 
     print(f"\nBound udp listener on {interface_ip}. Joined multicast group "
           f"{group}. Port {port}. Waiting to receive data...\n  (Ctrl+C to quit)")
 
     try:
         while True:
-            data, addr = sock.recvfrom(65535)
+            try:
+                data, addr = sock.recvfrom(65535)
+            except TimeoutError:
+                continue
             print(f"Received {len(data)} bytes from {addr[0]}:{addr[1]}: "
                   f"\"{data.decode(errors='replace')}\"")
     except KeyboardInterrupt:
